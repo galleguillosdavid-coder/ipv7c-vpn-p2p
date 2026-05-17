@@ -1,0 +1,18 @@
+[package]
+name = "ipv7c-discovery"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Zero-config peer discovery via mDNS, DHT, and PEX"
+
+[dependencies]
+ipv7c-transport = { path = "../ipv7c-transport" }
+ipv7c-protocol = { path = "../ipv7c-protocol" }
+ipv7c-identity = { path = "../ipv7c-identity" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+rand = { workspace = true }
+sha2 = { workspace = true }

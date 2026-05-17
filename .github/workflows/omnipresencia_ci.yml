@@ -1,0 +1,131 @@
+name: IPv7C CI - Omnipresencia Build Matrix
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  RUST_BACKTRACE: 1
+  PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # Job 1: Rust Core - Build y tests nativos (Windows/Linux/Mac)
+  # ──────────────────────────────────────────────────────────────
+  rust-core:
+    name: "Rust Core [${{ matrix.os }}]"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            core/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('core/Cargo.lock') }}
+      - name: Build ipv7c_core
+        run: cargo build --release --manifest-path core/Cargo.toml
+      - name: Run Rust tests
+        run: cargo test --manifest-path core/Cargo.toml
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 2: CLI Daemon - Compilación cruzada para Router (ARM Linux)
+  # ──────────────────────────────────────────────────────────────
+  daemon-crosscompile:
+    name: "CLI Daemon - Cross compile ARM Linux"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust + ARM target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-musl, armv7-unknown-linux-musleabihf
+      - name: Install cross-compilation tools
+        run: sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
+      - name: Build daemon for ARM64 (Raspberry Pi / NAS)
+        working-directory: cli-daemon
+        run: cargo build --release --target aarch64-unknown-linux-musl
+      - name: Build daemon for ARMv7 (OpenWrt Routers)
+        working-directory: cli-daemon
+        run: cargo build --release --target armv7-unknown-linux-musleabihf
+      - name: Upload daemon artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipv7cd-arm-binaries
+          path: |
+            cli-daemon/target/aarch64-unknown-linux-musl/release/ipv7cd
+            cli-daemon/target/armv7-unknown-linux-musleabihf/release/ipv7cd
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 3: Python + FFI Bridge - Tests de integración
+  # ──────────────────────────────────────────────────────────────
+  python-ffi:
+    name: "Python FFI Bridge test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install maturin and deps
+        run: pip install maturin
+      - name: Build and install ipv7c_core
+        working-directory: core
+        run: maturin develop
+      - name: Test FFI bridge
+        run: python -c "import ipv7c_core; h = ipv7c_core.get_self_integrity_hash_rust('ipv7c.py'); assert len(h) == 64, 'Hash SHA256 inválido'; print('FFI OK:', h)"
+      - name: Validate Tokio runtime init
+        run: python -c "import ipv7c_core; assert ipv7c_core.init_tokio_runtime() == True; print('Tokio runtime OK')"
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 4: Hardware IoT - Verificación de sintaxis no_std
+  # ──────────────────────────────────────────────────────────────
+  hardware-nostd:
+    name: "Hardware IoT - no_std syntax check"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust + Cortex-M targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: thumbv7em-none-eabihf
+      - name: Check esp32_sensor (no_std) compile
+        working-directory: hardware/esp32_sensor
+        run: cargo check --target thumbv7em-none-eabihf
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 5: Desktop GUI - Compilación de Tauri (Frontend + Rust)
+  # ──────────────────────────────────────────────────────────────
+  desktop-tauri:
+    name: "Desktop Tauri GUI"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install system dependencies (Linux WebKit)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: Install npm dependencies
+        working-directory: desktop
+        run: npm install
+      - name: Check Tauri Rust backend
+        working-directory: desktop/src-tauri
+        run: cargo check

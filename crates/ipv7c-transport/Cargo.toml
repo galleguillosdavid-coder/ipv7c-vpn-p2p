@@ -1,0 +1,18 @@
+[package]
+name = "ipv7c-transport"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Multi-protocol network transport with UDP hole-punching"
+
+[dependencies]
+ipv7c-crypto = { path = "../ipv7c-crypto" }
+tokio = { workspace = true }
+socket2 = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+rand = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }

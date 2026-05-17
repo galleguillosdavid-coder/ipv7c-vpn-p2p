@@ -1,0 +1,23 @@
+[package]
+name = "esp32_sensor"
+version = "0.1.0"
+edition = "2021"
+
+# Sin sistema operativo: compila a código máquina puro para ARM Cortex-M / ESP32
+[lib]
+name = "esp32_sensor"
+crate-type = ["staticlib"]
+
+[features]
+default = []
+ble = []      # Habilitar transporte Bluetooth Low Energy
+lora = []     # Habilitar transporte LoRa
+
+[dependencies]
+# Cero dependencias de std/OS aquí. En producción se añadiría esp-hal o rtic.
+
+[profile.release]
+opt-level = "z"   # Tamaño mínimo del binario
+lto = true
+codegen-units = 1
+panic = "abort"

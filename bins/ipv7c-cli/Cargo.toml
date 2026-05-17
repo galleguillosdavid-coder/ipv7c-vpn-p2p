@@ -1,0 +1,22 @@
+[package]
+name = "ipv7c-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "User-facing CLI for IPv7C sovereign VPN"
+
+[[bin]]
+name = "ipv7c"
+path = "src/main.rs"
+
+[dependencies]
+ipv7c-node = { path = "../../crates/ipv7c-node" }
+ipv7c-config = { path = "../../crates/ipv7c-config" }
+ipv7c-identity = { path = "../../crates/ipv7c-identity" }
+tokio = { workspace = true }
+clap = { workspace = true }
+colored = { workspace = true }
+indicatif = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }

@@ -1,0 +1,8 @@
+[package]
+name = "ipv7cd"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ipv7c_core = { path = "../core" }
+tokio = { version = "1.0", features = ["full"] }

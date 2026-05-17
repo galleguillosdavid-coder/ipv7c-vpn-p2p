@@ -1,0 +1,18 @@
+[package]
+name = "ipv7c-daemon"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Background daemon service for IPv7C (systemd / Windows Service)"
+
+[[bin]]
+name = "ipv7c-daemon"
+path = "src/main.rs"
+
+[dependencies]
+ipv7c-node = { path = "../../crates/ipv7c-node" }
+ipv7c-config = { path = "../../crates/ipv7c-config" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }

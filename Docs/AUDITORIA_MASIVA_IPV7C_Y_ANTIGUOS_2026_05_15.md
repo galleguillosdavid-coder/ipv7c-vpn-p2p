@@ -1,0 +1,886 @@
+# Auditoria masiva de ipv7c y de programas historicos en antiguos
+
+Fecha: 2026-05-15.
+Alcance: repositorio actual `ipv7c` y familias representativas dentro de `C:\Users\David\Desktop\dvd\antiguos`.
+Metodo: lectura estructural, muestreo de codigo, comparacion de README, puntos de entrada, crates, modulos y pruebas visibles.
+
+## Resumen ejecutivo
+
+- `ipv7c` tiene una idea estrategica potente pero mantiene un doble centro de gravedad entre Python monolitico y Rust parcial.
+- Las ramas `Ipv7IEU`, `Ipv7-6` y `Ipv7-7` conservan la capa operativa mas rica en control plane, gateway, API local y pruebas.
+- `Ipv7-8` amplifica ambicion, pero mezcla objetivos de red, inmunologia, soberania, laboratorio y automatizacion en un unico ejecutable muy cargado.
+- Las ramas de agentes (`j`, `k`, `h`, `asa`, `n`) prueban que existe una necesidad real de orquestacion, memoria, herramientas y auditoria automatica.
+- La leccion dominante para `ipv8` es clara: separar nucleo, plano de control, experiencia de usuario, laboratorio y agentes de gobierno.
+
+## Hallazgos sobre ipv7c
+
+1. `ipv7c.py` sigue siendo el nodo principal real del sistema, aunque la narrativa del monorepo empuja hacia un futuro Rust.
+2. El README promete un motor Rust soberano, pero el comportamiento operacional principal todavia vive en Python.
+3. Existen dos lineas de `ipv7c_core`: una en `core/` version `0.1.0` y otra en `rust/ipv7c_core` version `0.3.0`.
+4. Esa duplicidad crea riesgo de divergencia semantica, empaquetado confuso y errores de enlace FFI.
+5. El crate de `core/` expone hash, runtime tokio, codec y un `P2pNode` muy basico.
+6. El crate de `rust/ipv7c_core` es mas coherente como acelerador opcional, pero ya no expone el mismo alcance del crate en `core/`.
+7. `cli-daemon` depende de `ipv7c_core::p2p::P2pNode`, lo que lo acopla al crate menos maduro y no al acelerador mas pulido.
+8. `desktop/src-tauri` consulta APIs HTTP del nodo Python local, por lo que la app de escritorio no consume todavia un backend Rust soberano de punta a punta.
+9. La documentacion de omnipresencia describe fases completas, pero varias piezas siguen siendo scaffold o promesa.
+10. El repositorio contiene codigo de Wintun en `src/`, lo que aumenta complejidad legal, operativa y de mantenimiento.
+11. La convivencia entre Python, Rust, Tauri, hardware y artefactos binarios amplifica la necesidad de una gobernanza de interfaces estable.
+12. La suite de pruebas Python es extensa y refuerza que el valor real del sistema hoy esta concentrado en `ipv7c.py`.
+
+## Hallazgos sobre antiguos
+
+1. `Ipv7IEU` representa un candidato de produccion local con tunel overlay, identidad, DHT, trust store, API y gateway.
+2. `Ipv7-6` consolida esa linea y la presenta como base limpia con mayor cobertura y operacion mas ordenada.
+3. `Ipv7-7` enriquece la gobernanza, la evidencia documental y el control plane, pero crece en alcance y tamaño de entrada.
+4. `Ipv7-8` demuestra capacidad visionaria, pero aumenta el acoplamiento entre kernel, benchmark, inmunologia, discovery global, UI y hardware.
+5. Las ramas `Ipv7-3`, `Ipv7-4` y `Ipv7-5` muestran la evolucion del plano de control, la UI y el soporte multipath.
+6. Las ramas `j`, `k`, `h`, `asa` y `n` prueban otra necesidad del ecosistema: agentes soberanos, memoria, herramientas, orquestacion y autoauditoria.
+7. Muchas ramas historicas mezclan manifiesto, producto, experimento y normativa en los mismos archivos centrales.
+8. La documentacion historica es valiosa como memoria de decisiones, pero no siempre coincide con el estado real del codigo.
+
+## Patrones positivos recuperables
+
+- API local y dashboard embebido como contrato estable de observabilidad.
+- Descubrimiento P2P y DHT ligera como capa de resiliencia y soberania.
+- Gateway universal opt-in, evitando tocar el sistema por defecto cuando no hace falta.
+- Reputacion, telemetria y politicas como parte del plano de control, no como parche externo.
+- UI separada del runtime y conectada por interfaz local definida.
+- Pensamiento multiplataforma desde el origen, incluyendo edge, movil y hardware.
+- Benchmark, validacion y remediacion documentada como disciplina de ingenieria.
+
+## Patrones negativos a evitar en ipv8
+
+- Monolitos de entrada que concentran red, UI, politica, seguridad, actualizacion y laboratorio.
+- Duplicacion de crates o nucleos con nombres iguales y contratos distintos.
+- Prometer migracion total a Rust sin cerrar primero un dominio funcional concreto.
+- Mezclar marketing, manifiesto y decisiones tecnicas dentro del mismo punto de verdad operativo.
+- Acoplar agentes autonomos directamente al plano de datos de red sin un anillo de seguridad.
+- Convertir el repositorio en una suma de aspiraciones no versionadas.
+- Hacer que la UI dependa de APIs cambiantes o demasiado atadas al runtime historico.
+
+## Recomendaciones directas para ipv8
+
+1. Declarar un solo nucleo Rust verdadero.
+2. Definir contratos estables entre datos, control, observabilidad, UX y automatizacion.
+3. Mover la logica critica del overlay y de la sesion segura a Rust antes que cualquier expansion de marketing.
+4. Tratar el runtime Python existente como legado util, no como base eterna.
+5. Reusar el aprendizaje de `Ipv7IEU`, `Ipv7-6` y `Ipv7-7` para gateway, DHT, API y gobernanza.
+6. Encapsular laboratorio, automejora y agentes en modulos opcionales con permisos estrictos.
+7. Mantener un pipeline de telemetria y auditoria que mida verdad operacional, no solo intencion.
+8. Disenar `ipv8` como plataforma modular con perfil minimo, perfil edge, perfil desktop y perfil sovereign lab.
+
+## Conclusion
+
+`ipv8` debe nacer como una sintesis disciplinada: menos discurso incrustado en el runtime, menos duplicidad, mas contratos claros, mas Rust real, mejor separacion de responsabilidades y mejor trazabilidad entre lo prometido y lo ejecutable.
+
+## Anexo: Arquitectura
+
+- Arquitectura 1: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 1: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 1: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 1: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 1: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 2: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 2: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 2: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 2: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 2: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 3: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 3: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 3: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 3: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 3: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 4: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 4: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 4: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 4: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 4: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 5: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 5: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 5: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 5: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 5: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 6: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 6: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 6: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 6: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 6: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 7: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 7: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 7: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 7: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 7: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 8: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 8: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 8: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 8: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 8: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 9: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 9: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 9: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 9: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 9: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 10: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 10: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 10: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 10: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 10: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 11: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 11: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 11: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 11: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 11: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 12: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 12: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 12: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 12: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 12: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 13: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 13: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 13: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 13: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 13: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 14: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 14: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 14: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 14: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 14: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 15: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 15: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 15: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 15: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 15: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 16: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 16: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 16: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 16: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 16: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 17: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 17: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 17: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 17: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 17: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 18: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 18: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 18: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 18: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 18: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 19: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 19: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 19: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 19: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 19: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 20: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 20: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 20: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 20: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 20: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 21: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 21: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 21: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 21: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 21: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 22: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 22: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 22: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 22: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 22: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 23: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 23: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 23: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 23: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 23: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 24: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 24: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 24: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 24: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 24: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 25: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 25: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 25: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 25: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 25: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 26: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 26: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 26: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 26: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 26: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 27: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 27: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 27: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 27: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 27: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 28: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 28: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 28: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 28: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 28: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 29: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 29: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 29: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 29: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 29: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 30: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 30: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 30: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 30: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 30: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 31: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 31: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 31: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 31: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 31: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 32: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 32: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 32: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 32: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 32: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 33: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 33: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 33: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 33: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 33: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 34: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 34: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 34: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 34: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 34: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 35: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 35: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 35: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 35: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 35: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 36: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 36: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 36: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 36: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 36: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 37: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 37: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 37: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 37: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 37: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 38: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 38: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 38: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 38: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 38: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 39: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 39: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 39: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 39: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 39: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+- Arquitectura 40: La arquitectura actual necesita un mapa canonico de modulos y responsabilidades.
+- Arquitectura 40: El nodo Python concentra demasiado conocimiento de transporte, seguridad y experiencia local.
+- Arquitectura 40: La migracion a Rust debe hacerse por dominios cerrados y con pruebas de equivalencia.
+- Arquitectura 40: El contrato entre dashboard y runtime debe pasar a una especificacion versionada.
+- Arquitectura 40: El plano de control no debe compartir estado mutable sin aislamiento con el plano de datos.
+
+## Anexo: Operaciones
+
+- Operaciones 1: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 1: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 1: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 1: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 1: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 2: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 2: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 2: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 2: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 2: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 3: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 3: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 3: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 3: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 3: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 4: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 4: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 4: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 4: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 4: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 5: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 5: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 5: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 5: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 5: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 6: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 6: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 6: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 6: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 6: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 7: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 7: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 7: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 7: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 7: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 8: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 8: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 8: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 8: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 8: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 9: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 9: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 9: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 9: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 9: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 10: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 10: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 10: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 10: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 10: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 11: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 11: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 11: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 11: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 11: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 12: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 12: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 12: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 12: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 12: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 13: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 13: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 13: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 13: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 13: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 14: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 14: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 14: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 14: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 14: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 15: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 15: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 15: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 15: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 15: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 16: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 16: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 16: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 16: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 16: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 17: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 17: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 17: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 17: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 17: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 18: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 18: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 18: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 18: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 18: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 19: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 19: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 19: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 19: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 19: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 20: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 20: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 20: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 20: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 20: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 21: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 21: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 21: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 21: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 21: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 22: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 22: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 22: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 22: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 22: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 23: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 23: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 23: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 23: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 23: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 24: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 24: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 24: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 24: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 24: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 25: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 25: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 25: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 25: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 25: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 26: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 26: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 26: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 26: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 26: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 27: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 27: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 27: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 27: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 27: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 28: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 28: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 28: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 28: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 28: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 29: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 29: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 29: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 29: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 29: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 30: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 30: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 30: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 30: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 30: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 31: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 31: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 31: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 31: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 31: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 32: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 32: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 32: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 32: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 32: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 33: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 33: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 33: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 33: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 33: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 34: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 34: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 34: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 34: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 34: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 35: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 35: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 35: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 35: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 35: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 36: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 36: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 36: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 36: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 36: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 37: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 37: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 37: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 37: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 37: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 38: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 38: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 38: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 38: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 38: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 39: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 39: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 39: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 39: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 39: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+- Operaciones 40: Los scripts historicos demuestran valor operacional real y no deben descartarse sin captura de aprendizaje.
+- Operaciones 40: La instalacion local es una ventaja competitiva, pero necesita perfiles de despliegue mas claros.
+- Operaciones 40: El sistema debe distinguir modo laboratorio, modo soberano y modo produccion.
+- Operaciones 40: La observabilidad tiene que ser uniforme en desktop, daemon, gateway y edge.
+- Operaciones 40: La remediacion debe ser guiada por hechos y no por declaraciones del manifiesto.
+
+## Anexo: Seguridad
+
+- Seguridad 1: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 1: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 1: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 1: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 1: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 2: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 2: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 2: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 2: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 2: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 3: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 3: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 3: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 3: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 3: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 4: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 4: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 4: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 4: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 4: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 5: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 5: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 5: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 5: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 5: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 6: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 6: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 6: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 6: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 6: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 7: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 7: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 7: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 7: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 7: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 8: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 8: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 8: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 8: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 8: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 9: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 9: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 9: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 9: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 9: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 10: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 10: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 10: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 10: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 10: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 11: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 11: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 11: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 11: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 11: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 12: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 12: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 12: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 12: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 12: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 13: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 13: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 13: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 13: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 13: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 14: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 14: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 14: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 14: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 14: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 15: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 15: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 15: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 15: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 15: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 16: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 16: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 16: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 16: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 16: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 17: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 17: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 17: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 17: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 17: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 18: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 18: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 18: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 18: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 18: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 19: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 19: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 19: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 19: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 19: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 20: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 20: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 20: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 20: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 20: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 21: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 21: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 21: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 21: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 21: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 22: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 22: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 22: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 22: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 22: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 23: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 23: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 23: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 23: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 23: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 24: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 24: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 24: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 24: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 24: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 25: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 25: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 25: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 25: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 25: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 26: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 26: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 26: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 26: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 26: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 27: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 27: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 27: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 27: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 27: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 28: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 28: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 28: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 28: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 28: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 29: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 29: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 29: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 29: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 29: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 30: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 30: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 30: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 30: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 30: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 31: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 31: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 31: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 31: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 31: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 32: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 32: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 32: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 32: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 32: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 33: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 33: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 33: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 33: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 33: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 34: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 34: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 34: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 34: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 34: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 35: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 35: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 35: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 35: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 35: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 36: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 36: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 36: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 36: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 36: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 37: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 37: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 37: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 37: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 37: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 38: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 38: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 38: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 38: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 38: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 39: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 39: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 39: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 39: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 39: La reputacion de nodos debe ser interpretable y auditable.
+- Seguridad 40: La criptografia y la identidad necesitan versionado fuerte de protocolo.
+- Seguridad 40: Los componentes de auto-reparacion deben pasar por pruebas forenses y politicas de quorum.
+- Seguridad 40: Los agentes autonomos no deben escribir sobre el runtime sin una compuerta de gobernanza.
+- Seguridad 40: El uso de drivers, tuneles y privilegios del sistema necesita perfiles de riesgo por plataforma.
+- Seguridad 40: La reputacion de nodos debe ser interpretable y auditable.
+
+## Anexo: Producto
+
+- Producto 1: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 1: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 1: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 1: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 1: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 2: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 2: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 2: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 2: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 2: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 3: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 3: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 3: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 3: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 3: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 4: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 4: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 4: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 4: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 4: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 5: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 5: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 5: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 5: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 5: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 6: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 6: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 6: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 6: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 6: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 7: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 7: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 7: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 7: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 7: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 8: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 8: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 8: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 8: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 8: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 9: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 9: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 9: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 9: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 9: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 10: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 10: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 10: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 10: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 10: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 11: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 11: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 11: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 11: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 11: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 12: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 12: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 12: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 12: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 12: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 13: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 13: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 13: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 13: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 13: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 14: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 14: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 14: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 14: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 14: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 15: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 15: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 15: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 15: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 15: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 16: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 16: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 16: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 16: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 16: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 17: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 17: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 17: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 17: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 17: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 18: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 18: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 18: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 18: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 18: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 19: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 19: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 19: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 19: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 19: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 20: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 20: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 20: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 20: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 20: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 21: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 21: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 21: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 21: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 21: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 22: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 22: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 22: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 22: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 22: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 23: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 23: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 23: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 23: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 23: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 24: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 24: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 24: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 24: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 24: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 25: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 25: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 25: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 25: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 25: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 26: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 26: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 26: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 26: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 26: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 27: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 27: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 27: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 27: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 27: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 28: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 28: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 28: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 28: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 28: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 29: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 29: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 29: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 29: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 29: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 30: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 30: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 30: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 30: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 30: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 31: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 31: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 31: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 31: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 31: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 32: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 32: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 32: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 32: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 32: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 33: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 33: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 33: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 33: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 33: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 34: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 34: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 34: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 34: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 34: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 35: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 35: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 35: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 35: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 35: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 36: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 36: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 36: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 36: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 36: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 37: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 37: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 37: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 37: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 37: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 38: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 38: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 38: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 38: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 38: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 39: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 39: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 39: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 39: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 39: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.
+- Producto 40: La UI debe explicar el sistema sin ocultar la complejidad real del estado de red.
+- Producto 40: La promesa de omnipresencia debe apoyarse en caminos de build verdaderos y sostenibles.
+- Producto 40: El lenguaje del producto debe separar vision, experimento y capacidad ya entregada.
+- Producto 40: La compatibilidad entre versiones necesita una historia de migracion explicita.
+- Producto 40: La experiencia inicial debe funcionar aun sin topologia compleja ni hardware especial.

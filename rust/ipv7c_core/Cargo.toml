@@ -1,0 +1,24 @@
+[package]
+name = "ipv7c_core"
+version = "0.3.0"
+edition = "2021"
+license = "MIT"
+description = "Optional Rust/PyO3 acceleration core for IPv7C"
+
+[lib]
+name = "ipv7c_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+base64 = "0.22"
+chacha20poly1305 = "0.10"
+flate2 = "1"
+pyo3 = { version = "0.27", features = ["extension-module"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "time"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

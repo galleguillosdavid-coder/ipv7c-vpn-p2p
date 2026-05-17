@@ -1,0 +1,3 @@
+{"ts":"2026-05-14T00:49:09Z","event":"log_opened","node":{"name":"fronda","did":"did:ipv7c:158429a31e1745778792cf9ce02c41ec","tcp_port":null,"discovery_port":null},"path":"C:\\Users\\David\\Desktop\\dvd\\ipv7c\\log\\20260513-214909_fronda_cf9ce02c41ec.jsonl","log_prune":{"deleted":0,"bytes_deleted":0,"kept":1}}
+{"ts":"2026-05-14T00:49:09Z","event":"event","node":{"name":"fronda","did":"did:ipv7c:158429a31e1745778792cf9ce02c41ec","tcp_port":57341,"discovery_port":57441},"message":"nodo activo"}
+{"ts":"2026-05-14T00:49:09Z","event":"event","node":{"name":"fronda","did":"did:ipv7c:158429a31e1745778792cf9ce02c41ec","tcp_port":57341,"discovery_port":57441},"message":"cache rutas cargo 1 ruta(s)"}

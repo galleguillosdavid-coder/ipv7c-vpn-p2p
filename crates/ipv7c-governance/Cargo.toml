@@ -1,0 +1,16 @@
+[package]
+name = "ipv7c-governance"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Decentralized trust scoring, reputation, and consensus"
+
+[dependencies]
+ipv7c-identity = { path = "../ipv7c-identity" }
+ipv7c-routing = { path = "../ipv7c-routing" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+rusqlite = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }

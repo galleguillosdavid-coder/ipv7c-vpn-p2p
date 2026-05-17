@@ -1,0 +1,23 @@
+[package]
+name = "ipv7c-node"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Node orchestrator - assembles all subsystems into a running VPN node"
+
+[dependencies]
+ipv7c-crypto = { path = "../ipv7c-crypto" }
+ipv7c-identity = { path = "../ipv7c-identity" }
+ipv7c-transport = { path = "../ipv7c-transport" }
+ipv7c-routing = { path = "../ipv7c-routing" }
+ipv7c-tunnel = { path = "../ipv7c-tunnel" }
+ipv7c-discovery = { path = "../ipv7c-discovery" }
+ipv7c-protocol = { path = "../ipv7c-protocol" }
+ipv7c-governance = { path = "../ipv7c-governance" }
+ipv7c-config = { path = "../ipv7c-config" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }

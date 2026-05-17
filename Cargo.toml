@@ -1,0 +1,80 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/ipv7c-crypto",
+    "crates/ipv7c-identity",
+    "crates/ipv7c-transport",
+    "crates/ipv7c-routing",
+    "crates/ipv7c-tunnel",
+    "crates/ipv7c-discovery",
+    "crates/ipv7c-protocol",
+    "crates/ipv7c-governance",
+    "crates/ipv7c-config",
+    "crates/ipv7c-node",
+    "bins/ipv7c-cli",
+    "bins/ipv7c-daemon",
+    "desktop/src-tauri",
+]
+
+[workspace.package]
+version = "1.0.0-dev"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/galleguillosdavid-coder/ipv7c-vpn-p2p"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Cryptography
+chacha20poly1305 = "0.10"
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+ml-kem = "0.2"
+snow = "0.9"
+hkdf = "0.12"
+sha2 = "0.10"
+rand = "0.8"
+zeroize = { version = "1", features = ["derive"] }
+
+# Networking
+quinn = "0.11"
+socket2 = "0.5"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+bincode = "1"
+toml = "0.8"
+base64 = "0.22"
+
+# Compression
+zstd = "0.13"
+
+# Storage
+rusqlite = { version = "0.31", features = ["bundled"] }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+indicatif = "0.17"
+colored = "2"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+# Testing
+criterion = "0.5"
+
+# TUN adapters
+tun2 = "3"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+opt-level = 3

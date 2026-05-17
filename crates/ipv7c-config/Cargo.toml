@@ -1,0 +1,13 @@
+[package]
+name = "ipv7c-config"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Zero-config auto-detection and TOML configuration"
+
+[dependencies]
+ipv7c-identity = { path = "../ipv7c-identity" }
+serde = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }

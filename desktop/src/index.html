@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPv7C · Soul Vision v3.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="logo-orb"></div>
+      <span class="logo-text">IPv7C</span>
+      <span class="logo-sub">Soul Vision v3.0</span>
+    </div>
+    <div class="header-center">
+      <div class="status-pill" id="status-pill">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-label">Conectando…</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <input class="port-input" id="port-input" type="number" value="8765" min="1024" max="65535" title="Puerto del nodo IPv7C" />
+      <button class="btn-primary" id="btn-connect">Conectar</button>
+      <button class="btn-danger" id="btn-toggle" disabled>Toggle VPN</button>
+    </div>
+  </header>
+
+  <!-- ── MAIN LAYOUT ── -->
+  <main class="layout">
+
+    <!-- LEFT: PEER MESH -->
+    <aside class="panel panel-peers">
+      <h2 class="panel-title">🌐 Malla P2P</h2>
+      <div id="peers-list" class="peers-list">
+        <div class="empty-state">Sin pares detectados</div>
+      </div>
+    </aside>
+
+    <!-- CENTER: METRICS + 3D MAP -->
+    <section class="panel panel-main">
+      <!-- Metrics row -->
+      <div class="metrics-row">
+        <div class="metric-card" id="metric-did">
+          <div class="metric-label">DID del Nodo</div>
+          <div class="metric-value mono" id="val-did">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">SHA-256 Integridad</div>
+          <div class="metric-value mono small" id="val-hash">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Pares Activos</div>
+          <div class="metric-value" id="val-peers">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Latencia Avg.</div>
+          <div class="metric-value" id="val-latency">— ms</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Perfil de Red</div>
+          <div class="metric-value" id="val-profile">—</div>
+        </div>
+        <div class="metric-card" id="metric-sos">
+          <div class="metric-label">Modo SOS</div>
+          <div class="metric-value" id="val-sos">—</div>
+        </div>
+      </div>
+
+      <!-- Soul Map Canvas -->
+      <div class="soul-map-container">
+        <canvas id="soul-map"></canvas>
+        <div class="soul-map-label">SOUL MAP — Topología de Malla</div>
+      </div>
+    </section>
+
+    <!-- RIGHT: AI CHAT + LOGS -->
+    <aside class="panel panel-right">
+      <!-- AI Chat -->
+      <div class="ai-section">
+        <h2 class="panel-title">🤖 IA Soberana</h2>
+        <div id="chat-log" class="chat-log"></div>
+        <div class="chat-input-row">
+          <input id="chat-input" type="text" placeholder="Pregunta al nodo…" class="chat-input" />
+          <button id="btn-chat" class="btn-primary btn-sm">▶</button>
+        </div>
+      </div>
+      <!-- Live Logs -->
+      <div class="logs-section">
+        <h2 class="panel-title">📋 Logs en Vivo</h2>
+        <div id="log-stream" class="log-stream"></div>
+      </div>
+    </aside>
+
+  </main>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

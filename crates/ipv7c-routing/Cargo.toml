@@ -1,0 +1,18 @@
+[package]
+name = "ipv7c-routing"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Dynamic route table, gossip protocol, and multi-hop relay"
+
+[dependencies]
+ipv7c-transport = { path = "../ipv7c-transport" }
+ipv7c-protocol = { path = "../ipv7c-protocol" }
+ipv7c-crypto = { path = "../ipv7c-crypto" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+rusqlite = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+rand = { workspace = true }

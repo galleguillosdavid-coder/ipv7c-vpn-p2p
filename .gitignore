@@ -1,0 +1,25 @@
+# Libraries and Caches
+node_modules/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+
+# Ignore Rust build directory
+target/
+
+# White-list the specific compiled executables the user needs
+!target/release/ipv7c.exe
+!target/release/ipv7c-daemon.exe
+!target/debug/ipv7c-soul-vision.exe
+
+# Ignore large intermediate build artifacts
+*.pdb
+*.lib
+*.rlib
+*.rmeta
+*.d
+*.exp
+*.ilk
