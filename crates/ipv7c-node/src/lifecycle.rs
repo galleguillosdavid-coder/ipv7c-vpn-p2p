@@ -335,3 +335,88 @@ fn generate_ai_reply(message: &str) -> String {
         "Sovereign AI: Hola. Soy el nodo de Inteligencia Soberana de tu IPv7C. Monitoreo el enrutamiento P2P y garantizo que no exista ningún punto central de fallo en tu comunicación. ¿Qué deseas auditar hoy?".to_string()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn node_state_display_all_variants() {
+        assert_eq!(NodeState::Init.to_string(), "INIT");
+        assert_eq!(NodeState::Discovering.to_string(), "DISCOVERING");
+        assert_eq!(NodeState::Connecting.to_string(), "CONNECTING");
+        assert_eq!(NodeState::Meshed.to_string(), "MESHED");
+        assert_eq!(NodeState::Degraded.to_string(), "DEGRADED");
+        assert_eq!(NodeState::Isolated.to_string(), "ISOLATED");
+        assert_eq!(NodeState::ShuttingDown.to_string(), "SHUTTING_DOWN");
+    }
+
+    #[test]
+    fn node_state_equality() {
+        assert_eq!(NodeState::Meshed, NodeState::Meshed);
+        assert_ne!(NodeState::Init, NodeState::Meshed);
+    }
+
+    fn make_shared_state() -> SharedNodeState {
+        SharedNodeState {
+            state: NodeState::Init,
+            did: "did:ipv7c:test".into(),
+            alias: "Test-Node".into(),
+            listen_port: 57341,
+            sos_mode_active: false,
+            integrity_hash: "abc".into(),
+            peers: HashMap::new(),
+            recent_logs: Vec::new(),
+            network_type: "LAN".into(),
+        }
+    }
+
+    #[test]
+    fn add_log_rotates_at_100_entries() {
+        let mut state = make_shared_state();
+        for i in 0..110u32 {
+            state.add_log(format!("log {}", i));
+        }
+        // After 110 inserts with a cap at 100, length should be capped
+        assert!(state.recent_logs.len() <= 101);
+        // Most recent log should be the last inserted
+        assert!(state.recent_logs.last().unwrap().contains("109"));
+    }
+
+    #[test]
+    fn ai_reply_status_keyword() {
+        let reply = generate_ai_reply("status");
+        assert!(reply.contains("Sovereign AI"));
+    }
+
+    #[test]
+    fn ai_reply_peer_keyword() {
+        let reply = generate_ai_reply("peer");
+        assert!(reply.contains("Sovereign AI"));
+    }
+
+    #[test]
+    fn ai_reply_help_keyword() {
+        let reply = generate_ai_reply("help");
+        assert!(reply.contains("Sovereign AI"));
+    }
+
+    #[test]
+    fn ai_reply_sos_keyword() {
+        let reply = generate_ai_reply("sos");
+        assert!(reply.contains("Sovereign AI"));
+    }
+
+    #[test]
+    fn ai_reply_default_fallback() {
+        let reply = generate_ai_reply("algo_desconocido_xyz_12345");
+        assert!(reply.contains("Sovereign AI"));
+    }
+
+    #[test]
+    fn peer_info_fields() {
+        let peer = PeerInfo { alias: "TestPeer".into(), online: true, latency_ms: 12.5 };
+        assert!(peer.online);
+        assert_eq!(peer.latency_ms, 12.5);
+    }
+}

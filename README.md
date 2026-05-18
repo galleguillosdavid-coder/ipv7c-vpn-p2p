@@ -27,21 +27,24 @@ IPv7C is a **sovereign mesh VPN** that creates encrypted peer-to-peer tunnels be
 
 ## ⚡ Quick Start
 
-```bash
-# Install (single binary, no dependencies)
-curl -sSf https://install.ipv7c.net | sh
+### Pre-built binaries (Windows)
 
-# Start the VPN — that's it
-ipv7c up
+```powershell
+# Clone the repo — binaries are included
+git clone https://github.com/galleguillosdavid-coder/ipv7c-vpn-p2p.git
+cd ipv7c-vpn-p2p
 
-# Check connected peers
-ipv7c peers
+# Start the daemon (background network node)
+Start-Process .\target\release\ipv7c-daemon.exe
 
-# Switch network profile
-ipv7c profile use gaming
+# Launch the Soul Vision UI dashboard
+.\target\release\ipv7c-soul-vision.exe
 
-# View node identity
-ipv7c identity show
+# Or use the CLI directly
+.\target\release\ipv7c.exe up
+.\target\release\ipv7c.exe peers
+.\target\release\ipv7c.exe profile use gaming
+.\target\release\ipv7c.exe identity show
 ```
 
 ### Build from source
@@ -49,10 +52,10 @@ ipv7c identity show
 ```bash
 git clone https://github.com/galleguillosdavid-coder/ipv7c-vpn-p2p.git
 cd ipv7c-vpn-p2p
-cargo build --release
+cargo build --workspace --release
 
 # Run the node
-./target/release/ipv7c-cli up
+./target/release/ipv7c up
 ```
 
 ---
@@ -78,13 +81,12 @@ ipv7c/
 ├── bins/
 │   ├── ipv7c-cli/                # User-facing CLI (clap): up, peers, profile, identity
 │   └── ipv7c-daemon/             # Background service (systemd / Windows Service)
-├── platform/
-│   ├── desktop/                  # Tauri GUI — Soul Vision dashboard
-│   ├── android/                  # Kotlin + JNI native wrapper
-│   ├── ios/                      # Swift + UniFFI native wrapper
-│   └── embedded/                 # no_std firmware for ESP32/RP2040
-├── tests/                        # End-to-end integration tests
-├── benches/                      # Criterion performance benchmarks
+├── desktop/                      # Tauri GUI — Soul Vision dashboard
+│   ├── src/                      # Frontend (HTML/JS/CSS)
+│   └── src-tauri/                # Rust backend for Tauri
+├── hardware/
+│   └── esp32_sensor/             # Embedded IoT firmware
+├── mobile/                       # Android/iOS (planned)
 └── Docs/                         # Architecture, operations, and development guides
 ```
 
@@ -156,9 +158,9 @@ Each profile has its own keypair, routing preferences, and trust settings.
 
 | Platform | Binary | Transport | Status |
 |---|---|---|---|
-| Windows 10/11 | `ipv7c-cli.exe` | Wintun TUN | 🔨 Building |
-| Linux (x86_64, ARM) | `ipv7c-cli` | `/dev/net/tun` | 🔨 Building |
-| macOS (Apple Silicon) | `ipv7c-cli` | `utun` | 🔨 Building |
+| Windows 10/11 | `ipv7c.exe` / `ipv7c-soul-vision.exe` | Wintun TUN | ✅ Built |
+| Linux (x86_64, ARM) | `ipv7c` | `/dev/net/tun` | 🔨 Building |
+| macOS (Apple Silicon) | `ipv7c` | `utun` | 🔨 Building |
 | Android 8+ | `.apk` (JNI) | `VpnService` | 📋 Planned |
 | iOS 15+ | `.ipa` (UniFFI) | `NetworkExtension` | 📋 Planned |
 | OpenWrt / Routers | `ipv7c-daemon` | Raw UDP | 📋 Planned |

@@ -66,3 +66,58 @@ impl NodeConfig {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_port_is_57341() {
+        assert_eq!(NodeConfig::default().listen_port, 57341);
+    }
+
+    #[test]
+    fn pqc_enabled_by_default() {
+        assert!(NodeConfig::default().crypto.pqc_enabled);
+    }
+
+    #[test]
+    fn mdns_and_dht_enabled_by_default() {
+        let cfg = NodeConfig::default();
+        assert!(cfg.discovery.mdns_enabled);
+        assert!(cfg.discovery.dht_enabled);
+    }
+
+    #[test]
+    fn bootstrap_nodes_non_empty() {
+        assert!(!NodeConfig::default().discovery.bootstrap_nodes.is_empty());
+    }
+
+    #[test]
+    fn toml_roundtrip() {
+        let cfg = NodeConfig::default();
+        let s = toml::to_string_pretty(&cfg).unwrap();
+        let r: NodeConfig = toml::from_str(&s).unwrap();
+        assert_eq!(r.listen_port, cfg.listen_port);
+        assert_eq!(r.crypto.pqc_enabled, cfg.crypto.pqc_enabled);
+    }
+
+    #[test]
+    fn config_path_has_toml_extension() {
+        let p = crate::defaults::config_path();
+        assert_eq!(p.extension().and_then(|e| e.to_str()), Some("toml"));
+    }
+
+    #[test]
+    fn wallet_path_has_db_extension() {
+        let p = crate::defaults::wallet_path();
+        assert_eq!(p.extension().and_then(|e| e.to_str()), Some("db"));
+    }
+
+    #[test]
+    fn load_or_default_gives_defaults_when_no_file() {
+        // In a clean test env there's no config file — should fall back to defaults
+        let cfg = NodeConfig::load_or_default();
+        assert_eq!(cfg.listen_port, 57341);
+    }
+}

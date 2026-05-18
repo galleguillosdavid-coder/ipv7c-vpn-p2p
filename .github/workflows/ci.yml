@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ── Build & Test (Windows) ──────────────────────────────────────────────────
+  build-windows:
+    name: Build & Test · Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (no warnings allowed)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Build workspace (release)
+        run: cargo build --workspace --release
+
+      - name: Run tests
+        run: cargo test --workspace --lib -- --test-threads=4
+
+      - name: Upload release binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipv7c-windows-x86_64
+          path: |
+            target/release/ipv7c.exe
+            target/release/ipv7c-daemon.exe
+            target/release/ipv7c-soul-vision.exe
+          retention-days: 14
+
+  # ── Build & Test (Linux) ────────────────────────────────────────────────────
+  build-linux:
+    name: Build & Test · Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Install system dependencies
+        run: sudo apt-get install -y libsqlite3-dev pkg-config
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Clippy
+        run: cargo clippy --workspace --lib -- -D warnings
+
+      - name: Build workspace
+        run: cargo build --workspace --release
+
+      - name: Run tests
+        run: cargo test --workspace --lib
+
+      - name: Upload release binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipv7c-linux-x86_64
+          path: |
+            target/release/ipv7c
+            target/release/ipv7c-daemon
+          retention-days: 14
+
+  # ── Security Audit ──────────────────────────────────────────────────────────
+  security-audit:
+    name: Security Audit (cargo-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -48,7 +48,7 @@ impl RouteTable {
     pub fn remove_stale(&mut self, max_age_secs: u64) {
         for routes in self.routes.values_mut() {
             routes.retain(|r| {
-                r.last_updated.map_or(true, |t| t.elapsed().as_secs() < max_age_secs)
+                r.last_updated.is_none_or(|t| t.elapsed().as_secs() < max_age_secs)
             });
         }
         self.routes.retain(|_, v| !v.is_empty());

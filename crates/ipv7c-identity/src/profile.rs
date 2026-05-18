@@ -25,20 +25,15 @@ pub struct Profile {
 }
 
 /// Routing strategy for a profile.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub enum RoutingPreference {
     /// Prefer the lowest latency path.
+    #[default]
     LowestLatency,
     /// Prefer the most reliable path (highest trust).
     MostReliable,
     /// Prefer maximum privacy (more hops, no direct).
     MaxPrivacy,
-}
-
-impl Default for RoutingPreference {
-    fn default() -> Self {
-        Self::LowestLatency
-    }
 }
 
 impl Profile {

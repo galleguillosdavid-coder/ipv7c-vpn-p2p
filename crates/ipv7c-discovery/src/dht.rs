@@ -24,3 +24,35 @@ pub async fn publish(_did_hash: [u8; 4], _port: u16) -> Result<(), super::Discov
     info!("Publishing to DHT");
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bootstrap_nodes_non_empty() {
+        assert!(!BOOTSTRAP_NODES.is_empty());
+    }
+
+    #[test]
+    fn bootstrap_nodes_have_port() {
+        for node in BOOTSTRAP_NODES {
+            assert!(node.contains(':'), "Node '{}' must include port", node);
+        }
+    }
+
+    #[tokio::test]
+    async fn bootstrap_returns_ok() {
+        assert!(bootstrap().await.is_ok());
+    }
+
+    #[tokio::test]
+    async fn lookup_unknown_returns_none() {
+        assert!(lookup(&[0xff, 0xff, 0xff, 0xff]).await.is_none());
+    }
+
+    #[tokio::test]
+    async fn publish_returns_ok() {
+        assert!(publish([1, 2, 3, 4], 57341).await.is_ok());
+    }
+}

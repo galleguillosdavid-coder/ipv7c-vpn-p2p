@@ -59,7 +59,7 @@ impl TrustStore {
     }
 
     pub fn is_banned(&self, did_hash: &[u8; 4]) -> bool {
-        self.entries.get(did_hash).map_or(false, |e| e.banned)
+        self.entries.get(did_hash).is_some_and(|e| e.banned)
     }
 
     pub fn ban(&mut self, did_hash: [u8; 4]) {
