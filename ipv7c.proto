@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package ipv7c;
+
+service Ipv7cDaemon {
+    // Stream live telemetry to the Soul Vision dashboard
+    rpc StreamTelemetry(TelemetryRequest) returns (stream TelemetryResponse);
+    
+    // Send routing commands
+    rpc UpdateRoute(RouteUpdateRequest) returns (RouteUpdateResponse);
+}
+
+message TelemetryRequest {
+    string client_id = 1;
+}
+
+message TelemetryResponse {
+    double cpu_usage = 1;
+    double mem_usage = 2;
+    uint32 active_peers = 3;
+    repeated NodeStatus nodes = 4;
+}
+
+message NodeStatus {
+    string did = 1;
+    double latency_ms = 2;
+    bool is_healthy = 3;
+}
+
+message RouteUpdateRequest {
+    string target_did = 1;
+    string next_hop_addr = 2;
+}
+
+message RouteUpdateResponse {
+    bool success = 1;
+}

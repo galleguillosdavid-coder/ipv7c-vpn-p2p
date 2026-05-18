@@ -1,0 +1,5 @@
+namespace ipv7c {
+    void start_node();
+    void stop_node();
+    string get_status();
+};
