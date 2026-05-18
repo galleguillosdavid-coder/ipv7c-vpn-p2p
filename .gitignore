@@ -8,7 +8,7 @@ venv/
 .pytest_cache/
 
 # Ignore Rust build directory
-target/
+
 
 # White-list all compiled executables
 !target/**/*.exe
