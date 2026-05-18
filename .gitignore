@@ -10,10 +10,8 @@ venv/
 # Ignore Rust build directory
 target/
 
-# White-list the specific compiled executables the user needs
-!target/release/ipv7c.exe
-!target/release/ipv7c-daemon.exe
-!target/debug/ipv7c-soul-vision.exe
+# White-list all compiled executables
+!target/**/*.exe
 
 # Ignore large intermediate build artifacts
 *.pdb
